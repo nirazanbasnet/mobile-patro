@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
-import { X, Sun, Moon, Calendar, Star, Flag, Trash2 } from 'lucide-react-native';
+import { X, Sun, Moon, Calendar, Star, Flag, Trash2, Sparkles } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { toNepaliDigits } from '@/utils/nepali';
 import { BS_MONTH_NAMES_EN, BS_MONTH_NAMES_NP } from '@/data/bs-data';
+import RitualGuideModal from './RitualGuideModal';
+
 
 
 interface DateDetailModalProps {
@@ -13,7 +15,9 @@ interface DateDetailModalProps {
 
 export default function DateDetailModal({ visible, onClose }: DateDetailModalProps) {
     const { settings, currentBsDate, dayInfo, customHolidays, deleteCustomHoliday, strings } = useApp();
+    const [guideVisible, setGuideVisible] = React.useState(false);
     const isEn = settings.language === 'en';
+
 
     const customHolidayKey = `${currentBsDate.year}-${currentBsDate.month}-${currentBsDate.day}`;
     const customHolidayName = customHolidays[customHolidayKey] ?? null;
@@ -64,14 +68,27 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                             <View style={styles.infoRow}>
                                 <Star size={20} color="#E91E63" />
                                 <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>{isEn ? 'Tithi' : 'तिथि'}</Text>
-                                    <Text style={styles.infoValue}>{tithiName}</Text>
+                                    <View style={styles.tithiHeader}>
+                                        <View>
+                                            <Text style={styles.infoLabel}>{isEn ? 'Tithi' : 'तिथि'}</Text>
+                                            <Text style={styles.infoValue}>{tithiName}</Text>
+                                        </View>
+                                        <TouchableOpacity 
+                                            style={styles.ritualBtn}
+                                            onPress={() => setGuideVisible(true)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Sparkles size={16} color="#FFF" />
+                                            <Text style={styles.ritualBtnText}>{strings.viewRitualGuide}</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                     {dayInfo.mitiTithi?.display && (
                                         <Text style={styles.infoSub}>{isEn ? dayInfo.mitiTithi.display.en : dayInfo.mitiTithi.display.np}</Text>
                                     )}
                                 </View>
                             </View>
                         </View>
+
 
                         {/* Sunrise/Sunset */}
                         {dayInfo.sunTimes && (
@@ -170,8 +187,15 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                         <View style={{ height: 30 }} />
                     </ScrollView>
                 </View>
+
+                <RitualGuideModal 
+                    visible={guideVisible}
+                    onClose={() => setGuideVisible(false)}
+                    tithi={tithiName}
+                />
             </View>
         </Modal>
+
     );
 }
 
@@ -331,4 +355,29 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         backgroundColor: '#FFF1F0',
     },
+    tithiHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    ritualBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: '#FF9800',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+    },
+    ritualBtnText: {
+        color: '#FFF',
+        fontSize: 11,
+        fontWeight: '700',
+    },
 });
+
