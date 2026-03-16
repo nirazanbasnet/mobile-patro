@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
-import { X, Sun, Moon, Calendar, Star, Flag, Trash2, Sparkles } from 'lucide-react-native';
+import { X, Sun, Moon, Calendar, Star, Flag, Trash2, Sparkles, Bell, Clock } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { toNepaliDigits } from '@/utils/nepali';
 import { BS_MONTH_NAMES_EN, BS_MONTH_NAMES_NP } from '@/data/bs-data';
@@ -14,13 +14,15 @@ interface DateDetailModalProps {
 }
 
 export default function DateDetailModal({ visible, onClose }: DateDetailModalProps) {
-    const { settings, currentBsDate, dayInfo, customHolidays, deleteCustomHoliday, strings } = useApp();
+    const { settings, currentBsDate, dayInfo, customHolidays, deleteCustomHoliday, smartEvents, deleteSmartEvent, strings } = useApp();
     const [guideVisible, setGuideVisible] = React.useState(false);
     const isEn = settings.language === 'en';
 
 
     const customHolidayKey = `${currentBsDate.year}-${currentBsDate.month}-${currentBsDate.day}`;
     const customHolidayName = customHolidays[customHolidayKey] ?? null;
+    
+    const smartEvent = smartEvents[customHolidayKey] ?? null;
 
 
 
@@ -124,6 +126,45 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                                         activeOpacity={0.7}
                                     >
                                         <Trash2 size={16} color="#E8533F" />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Smart Event (AI Parsed) */}
+                        {smartEvent && (
+                            <View style={[styles.infoCard, { backgroundColor: '#FFF9F0', borderColor: '#FFE0B2' }]}>
+                                <View style={styles.infoRow}>
+                                    <Sparkles size={20} color="#FF9800" />
+                                    <View style={styles.infoContent}>
+                                        <Text style={[styles.infoLabel, { color: '#FF9800' }]}>{strings.intelligentDateParsing}</Text>
+                                        <Text style={styles.infoValue}>{smartEvent.title}</Text>
+                                        
+                                        <View style={styles.smartDetailRow}>
+                                            {smartEvent.remindAtTime && (
+                                                <View style={styles.smartDetailItem}>
+                                                    <Clock size={12} color="#666" />
+                                                    <Text style={styles.smartDetailText}>{smartEvent.remindAtTime}</Text>
+                                                </View>
+                                            )}
+                                            {smartEvent.reminderEnabled && (
+                                                <View style={styles.smartDetailItem}>
+                                                    <Bell size={12} color="#4CAF50" />
+                                                    <Text style={[styles.smartDetailText, { color: '#4CAF50' }]}>Reminder Set</Text>
+                                                </View>
+                                            )}
+                                        </View>
+
+                                        {smartEvent.note && smartEvent.note !== smartEvent.title && (
+                                            <Text style={styles.smartNote}>{smartEvent.note}</Text>
+                                        )}
+                                    </View>
+                                    <TouchableOpacity
+                                        style={styles.deleteHolidayBtn}
+                                        onPress={() => deleteSmartEvent(currentBsDate)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Trash2 size={16} color="#666" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -378,6 +419,28 @@ const styles = StyleSheet.create({
         color: '#FFF',
         fontSize: 11,
         fontWeight: '700',
+    },
+    smartDetailRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginTop: 6,
+    },
+    smartDetailItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    smartDetailText: {
+        fontSize: 12,
+        color: '#666',
+        fontWeight: '500',
+    },
+    smartNote: {
+        fontSize: 13,
+        color: '#7f8c8d',
+        marginTop: 8,
+        fontStyle: 'italic',
     },
 });
 

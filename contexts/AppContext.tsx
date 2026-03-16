@@ -17,6 +17,19 @@ import { NewCalendarData, EventDetail, TithiDetails } from '@/types/miti.types';
 const SETTINGS_KEY = '@nepali_cal_settings';
 const NOTES_KEY = '@nepali_cal_notes';
 const CUSTOM_HOLIDAYS_KEY = '@nepali_cal_custom_holidays';
+const SMART_EVENTS_KEY = '@nepali_cal_smart_events';
+
+export interface SmartEvent {
+    title: string;
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    note: string;
+    reminderEnabled: boolean;
+    remindAtTime?: string;
+}
 
 
 export interface AppSettings {
@@ -97,6 +110,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
     const [notes, setNotes] = useState<Record<string, string>>({});
     const [customHolidays, setCustomHolidays] = useState<Record<string, string>>({});
+    const [smartEvents, setSmartEvents] = useState<Record<string, SmartEvent>>({});
     const [currentBsDate, setCurrentBsDate] = useState<BsDate>(getTodayBs);
 
     const [dayInfo, setDayInfo] = useState<DayInfo>(() => computeDayInfo(getTodayBs(), 'np'));
@@ -141,6 +155,14 @@ export const [AppProvider, useApp] = createContextHook(() => {
         },
     });
 
+    const smartEventsQuery = useQuery({
+        queryKey: ['smartEvents'],
+        queryFn: async () => {
+            const stored = await AsyncStorage.getItem(SMART_EVENTS_KEY);
+            return stored ? (JSON.parse(stored) as Record<string, SmartEvent>) : {};
+        },
+    });
+
 
     const saveSettingsMutation = useMutation({
         mutationFn: async (newSettings: AppSettings) => {
@@ -163,6 +185,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
         },
     });
 
+    const saveSmartEventsMutation = useMutation({
+        mutationFn: async (newEvents: Record<string, SmartEvent>) => {
+            await AsyncStorage.setItem(SMART_EVENTS_KEY, JSON.stringify(newEvents));
+            return newEvents;
+        },
+    });
+
 
     useEffect(() => {
         if (settingsQuery.data) {
@@ -181,6 +210,12 @@ export const [AppProvider, useApp] = createContextHook(() => {
             setCustomHolidays(customHolidaysQuery.data);
         }
     }, [customHolidaysQuery.data]);
+
+    useEffect(() => {
+        if (smartEventsQuery.data) {
+            setSmartEvents(smartEventsQuery.data);
+        }
+    }, [smartEventsQuery.data]);
 
     useEffect(() => {
         setDayInfo(computeDayInfo(currentBsDate, settings.language, currentMitiData));
@@ -289,6 +324,25 @@ export const [AppProvider, useApp] = createContextHook(() => {
         });
     }, []);
 
+    const saveSmartEvent = useCallback((event: SmartEvent) => {
+        setSmartEvents(prev => {
+            const key = `${event.date.year}-${event.date.month}-${event.date.day}`;
+            const updated = { ...prev, [key]: event };
+            saveSmartEventsMutation.mutate(updated);
+            return updated;
+        });
+    }, []);
+
+    const deleteSmartEvent = useCallback((bsDate: BsDate) => {
+        setSmartEvents(prev => {
+            const key = `${bsDate.year}-${bsDate.month}-${bsDate.day}`;
+            const updated = { ...prev };
+            delete updated[key];
+            saveSmartEventsMutation.mutate(updated);
+            return updated;
+        });
+    }, []);
+
     const isToday = (() => {
         const today = getTodayBs();
         return currentBsDate.year === today.year &&
@@ -315,8 +369,11 @@ export const [AppProvider, useApp] = createContextHook(() => {
         customHolidays,
         saveCustomHoliday,
         deleteCustomHoliday,
+        saveSmartEvent,
+        deleteSmartEvent,
+        smartEvents,
         strings,
-        isLoading: settingsQuery.isLoading || mitiCalendarQuery.isLoading,
+        isLoading: settingsQuery.isLoading || mitiCalendarQuery.isLoading || smartEventsQuery.isLoading,
         mitiCalendarData: mitiCalendarQuery.data,
         mitiCalendarError: mitiCalendarQuery.error,
     };

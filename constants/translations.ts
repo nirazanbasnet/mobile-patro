@@ -43,6 +43,13 @@ interface Translations {
 	aiDisclaimer: string;
 	loadingRitual: string;
 	retryRitual: string;
+	smartAdd: string;
+	intelligentDateParsing: string;
+	smartAddInputPlaceholder: string;
+	parsedAITitle: string;
+	confirmAndAdd: string;
+	whatsHappening: string;
+	typingVoiceHint: string;
 }
 
 
@@ -89,6 +96,13 @@ const np: Translations = {
     retryRitual: "पुनः प्रयास गर्नुहोस्",
 	customHolidayName: "बिदाको नाम",
 	customHolidayPlaceholder: "उदाहरण: कम्पनी बन्द",
+	smartAdd: "छरितो थप्नुहोस्",
+	intelligentDateParsing: "स्वचालित मिति पहिचान",
+	smartAddInputPlaceholder: "उदाहरण: १५ वैशाखमा बिहान १० बजे विवाह",
+	parsedAITitle: "एआईले बुझेको विवरण",
+	confirmAndAdd: "निश्चित गरी थप्नुहोस्",
+	whatsHappening: "के हुँदैछ?",
+	typingVoiceHint: "टाइप गर्नुहोस् वा आवाज प्रयोग गर्नुहोस्",
 };
 
 const en: Translations = {
@@ -134,6 +148,13 @@ const en: Translations = {
     retryRitual: "Retry",
 	customHolidayName: "Holiday Name",
 	customHolidayPlaceholder: "e.g. Company Holiday",
+	smartAdd: "Smart Add",
+	intelligentDateParsing: "Intelligent Date Parsing",
+	smartAddInputPlaceholder: "e.g., Wedding on 15th Baisakh at 10 AM",
+	parsedAITitle: "AI Parsed Results",
+	confirmAndAdd: "Confirm & Add",
+	whatsHappening: "What's happening?",
+	typingVoiceHint: "Try typing or use voice dictation",
 };
 
 const translations: Record<Language, Translations> = { np, en };

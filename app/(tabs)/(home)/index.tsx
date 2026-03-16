@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { ChevronLeft, ChevronRight, Settings, RotateCcw } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Settings, RotateCcw, Sparkles } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import AnimatedDate from '@/components/AnimatedDate';
 import DailyInfo from '@/components/DailyInfo';
@@ -14,6 +14,7 @@ import NoteModal from '@/components/NoteModal';
 import ParticleEffect from '@/components/ParticleEffect';
 import DateDetailModal from '@/components/DateDetailModal';
 import CustomHolidayModal from '@/components/CustomHolidayModal';
+import SmartAddModal from '@/components/SmartAddModal';
 import { isMajorFestival } from '@/data/festivals';
 import { StatusBar } from 'expo-status-bar';
 import { getDaysInBsMonth, BS_DAY_NAMES_SHORT_NP, BS_MONTH_NAMES_NP, BS_MONTH_NAMES_EN } from '@/data/bs-data';
@@ -41,6 +42,7 @@ export default function HomeScreen() {
     const [noteModalVisible, setNoteModalVisible] = useState(false);
     const [dateDetailVisible, setDateDetailVisible] = useState(false);
     const [customHolidayModalVisible, setCustomHolidayModalVisible] = useState(false);
+    const [smartAddVisible, setSmartAddVisible] = useState(false);
     const [customHolidayTarget, setCustomHolidayTarget] = useState<{ year: number; month: number; day: number }>(currentBsDate);
 
 
@@ -204,9 +206,14 @@ export default function HomeScreen() {
             {/* Header */}
             <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
                 <Text style={[styles.headerTitle, { color: '#E91E63' }]}>MobilePatro</Text>
-                <TouchableOpacity onPress={goToSettings} style={[styles.themeToggle, { borderColor: '#FFE4EC' }]}>
-                    <Settings size={20} color="#E91E63" />
-                </TouchableOpacity>
+                <View style={styles.headerRight}>
+                    <TouchableOpacity onPress={() => setSmartAddVisible(true)} style={[styles.themeToggle, { borderColor: '#FFE4EC', marginRight: 12 }]}>
+                        <Sparkles size={20} color="#FF9800" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={goToSettings} style={[styles.themeToggle, { borderColor: '#FFE4EC' }]}>
+                        <Settings size={20} color="#E91E63" />
+                    </TouchableOpacity>
+                </View>
             </View>
 
             <ScrollView
@@ -328,6 +335,10 @@ export default function HomeScreen() {
                 onClose={() => setCustomHolidayModalVisible(false)}
                 bsDate={customHolidayTarget}
             />
+            <SmartAddModal
+                visible={smartAddVisible}
+                onClose={() => setSmartAddVisible(false)}
+            />
         </View>
     );
 }
@@ -348,6 +359,10 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: '800' as const,
         letterSpacing: -0.5,
+    },
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     themeToggle: {
         width: 40,
