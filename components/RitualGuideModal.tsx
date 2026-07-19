@@ -31,7 +31,7 @@ export default function RitualGuideModal({ visible, onClose, tithi }: RitualGuid
             const data = await generateRitualGuide(tithi, settings.language);
             setGuide(data);
         } catch (err: any) {
-            setError(err.message || 'Failed to generate guide');
+            setError(err.message || strings.ritualGuideFailed);
         } finally {
             setLoading(false);
         }
@@ -52,7 +52,7 @@ export default function RitualGuideModal({ visible, onClose, tithi }: RitualGuid
                         <View style={styles.headerLeft}>
                             <Sparkles size={20} color="#FF9800" />
                             <Text style={styles.headerTitle}>
-                                {guide?.title || (isEn ? 'AI Ritual Guide' : 'एआई संस्कार विधि')}
+                                {guide?.title || strings.aiRitualGuide}
                             </Text>
                         </View>
                         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>

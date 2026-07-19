@@ -9,15 +9,22 @@ import { getTithi, TithiInfo, getLunarPhaseEmoji } from '@/utils/tithi';
 import { getSunTimes, SunTimes } from '@/utils/sun-times';
 import { getFestival } from '@/data/festivals';
 import { BS_MONTH_NAMES_NP, BS_DAY_NAMES_NP, BS_MONTH_NAMES_EN, BS_DAY_NAMES_EN } from '@/data/bs-data';
-import { toNepaliDigits, formatAdDate } from '@/utils/nepali';
+import { toNepaliDigits, formatAdDate, formatClockTime } from '@/utils/nepali';
 import type { Festival } from '@/data/festivals';
 import { fetchCalendarData, fetchDayData, getSunriseSunset, getEventsFromData, getHolidaysFromData, isHoliday } from '@/services/mitiApi';
+import {
+    requestNotificationPermissions,
+    scheduleEventReminder,
+    cancelNotification,
+    resolveReminderFireDate,
+} from '@/services/notificationService';
 import { NewCalendarData, EventDetail, TithiDetails } from '@/types/miti.types';
 
 const SETTINGS_KEY = '@nepali_cal_settings';
 const NOTES_KEY = '@nepali_cal_notes';
 const CUSTOM_HOLIDAYS_KEY = '@nepali_cal_custom_holidays';
 const SMART_EVENTS_KEY = '@nepali_cal_smart_events';
+const REMINDERS_KEY = '@nepali_cal_reminders';
 
 export interface SmartEvent {
     title: string;
@@ -29,7 +36,27 @@ export interface SmartEvent {
     note: string;
     reminderEnabled: boolean;
     remindAtTime?: string;
+    // Absent on events stored before reminders were cancellable; treat as "nothing to cancel".
+    notificationId?: string | null;
 }
+
+export interface Reminder {
+    id: string;
+    title: string;
+    date: {
+        year: number;
+        month: number;
+        day: number;
+    };
+    time: string; // "HH:mm", 24h
+    leadDays: number; // 0 = on the day, 1 = the day before
+    notificationId: string | null;
+    createdAt: number;
+}
+
+export type AddReminderResult =
+    | { ok: true; scheduled: boolean }
+    | { ok: false; reason: 'past' };
 
 
 export interface AppSettings {
@@ -76,14 +103,20 @@ function computeDayInfo(bsDate: BsDate, language: Language, mitiData: NewCalenda
     const festival = getFestival(bsDate.year, bsDate.month, bsDate.day);
     const isEn = language === 'en';
 
-    // Use Miti API data if available
+    // Use Miti API data if available. Both sources are 24h but differ in numerals
+    // (the API returns Nepali digits), so each is normalised to the display language.
     const mitiSunTimes = mitiData ? getSunriseSunset(mitiData) : null;
-    const finalSunTimes: SunTimes = mitiSunTimes?.sunrise && mitiSunTimes?.sunset ? {
+    const rawSunTimes: SunTimes = mitiSunTimes?.sunrise && mitiSunTimes?.sunset ? {
         sunrise: mitiSunTimes.sunrise,
         sunset: mitiSunTimes.sunset,
         sunriseHour: 0,
         sunsetHour: 0,
     } : sunTimes;
+    const finalSunTimes: SunTimes = {
+        ...rawSunTimes,
+        sunrise: formatClockTime(rawSunTimes.sunrise, language),
+        sunset: formatClockTime(rawSunTimes.sunset, language),
+    };
 
     return {
         bsDate,
@@ -93,7 +126,7 @@ function computeDayInfo(bsDate: BsDate, language: Language, mitiData: NewCalenda
         monthNameNp: isEn ? BS_MONTH_NAMES_EN[bsDate.month - 1] : BS_MONTH_NAMES_NP[bsDate.month - 1],
         nepaliDay: isEn ? String(bsDate.day) : toNepaliDigits(bsDate.day),
         nepaliYear: isEn ? String(bsDate.year) : toNepaliDigits(bsDate.year),
-        englishDateStr: formatAdDate(ad.year, ad.month, ad.day),
+        englishDateStr: formatAdDate(ad.year, ad.month, ad.day, language),
         tithi,
         lunarEmoji: getLunarPhaseEmoji(tithi.index),
         sunTimes: finalSunTimes,
@@ -111,6 +144,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     const [notes, setNotes] = useState<Record<string, string>>({});
     const [customHolidays, setCustomHolidays] = useState<Record<string, string>>({});
     const [smartEvents, setSmartEvents] = useState<Record<string, SmartEvent>>({});
+    const [reminders, setReminders] = useState<Record<string, Reminder[]>>({});
     const [currentBsDate, setCurrentBsDate] = useState<BsDate>(getTodayBs);
 
     const [dayInfo, setDayInfo] = useState<DayInfo>(() => computeDayInfo(getTodayBs(), 'np'));
@@ -164,6 +198,21 @@ export const [AppProvider, useApp] = createContextHook(() => {
     });
 
 
+    const remindersQuery = useQuery({
+        queryKey: ['reminders'],
+        queryFn: async () => {
+            const stored = await AsyncStorage.getItem(REMINDERS_KEY);
+            return stored ? (JSON.parse(stored) as Record<string, Reminder[]>) : {};
+        },
+    });
+
+    const saveRemindersMutation = useMutation({
+        mutationFn: async (newReminders: Record<string, Reminder[]>) => {
+            await AsyncStorage.setItem(REMINDERS_KEY, JSON.stringify(newReminders));
+            return newReminders;
+        },
+    });
+
     const saveSettingsMutation = useMutation({
         mutationFn: async (newSettings: AppSettings) => {
             await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
@@ -216,6 +265,12 @@ export const [AppProvider, useApp] = createContextHook(() => {
             setSmartEvents(smartEventsQuery.data);
         }
     }, [smartEventsQuery.data]);
+
+    useEffect(() => {
+        if (remindersQuery.data) {
+            setReminders(remindersQuery.data);
+        }
+    }, [remindersQuery.data]);
 
     useEffect(() => {
         setDayInfo(computeDayInfo(currentBsDate, settings.language, currentMitiData));
@@ -336,9 +391,73 @@ export const [AppProvider, useApp] = createContextHook(() => {
     const deleteSmartEvent = useCallback((bsDate: BsDate) => {
         setSmartEvents(prev => {
             const key = `${bsDate.year}-${bsDate.month}-${bsDate.day}`;
+            // Cancel the pending notification, otherwise the reminder still fires
+            // for an event the user has deleted.
+            const pendingId = prev[key]?.notificationId;
+            if (pendingId) {
+                cancelNotification(pendingId).catch(() => {});
+            }
             const updated = { ...prev };
             delete updated[key];
             saveSmartEventsMutation.mutate(updated);
+            return updated;
+        });
+    }, []);
+
+    const addReminder = useCallback(async (
+        bsDate: BsDate,
+        input: { title: string; time: string; leadDays: number },
+    ): Promise<AddReminderResult> => {
+        const ad = bsToAd(bsDate.year, bsDate.month, bsDate.day);
+        const fireAt = resolveReminderFireDate(ad, input.time, input.leadDays);
+        if (!fireAt) {
+            return { ok: false, reason: 'past' };
+        }
+
+        // The reminder is saved either way; scheduling is best-effort, since the
+        // user may have denied notification permission (or be running Expo Go).
+        const granted = await requestNotificationPermissions();
+        const notificationId = granted
+            ? await scheduleEventReminder(input.title, formatAdDate(ad.year, ad.month, ad.day), fireAt)
+            : null;
+
+        const reminder: Reminder = {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            title: input.title,
+            date: { year: bsDate.year, month: bsDate.month, day: bsDate.day },
+            time: input.time,
+            leadDays: input.leadDays,
+            notificationId,
+            createdAt: Date.now(),
+        };
+
+        setReminders(prev => {
+            const key = `${bsDate.year}-${bsDate.month}-${bsDate.day}`;
+            const updated = { ...prev, [key]: [...(prev[key] ?? []), reminder] };
+            saveRemindersMutation.mutate(updated);
+            return updated;
+        });
+
+        return { ok: true, scheduled: notificationId !== null };
+    }, []);
+
+    const deleteReminder = useCallback((bsDate: BsDate, reminderId: string) => {
+        setReminders(prev => {
+            const key = `${bsDate.year}-${bsDate.month}-${bsDate.day}`;
+            const forDay = prev[key] ?? [];
+            const pendingId = forDay.find(r => r.id === reminderId)?.notificationId;
+            if (pendingId) {
+                cancelNotification(pendingId).catch(() => {});
+            }
+
+            const remaining = forDay.filter(r => r.id !== reminderId);
+            const updated = { ...prev };
+            if (remaining.length) {
+                updated[key] = remaining;
+            } else {
+                delete updated[key];
+            }
+            saveRemindersMutation.mutate(updated);
             return updated;
         });
     }, []);
@@ -372,6 +491,9 @@ export const [AppProvider, useApp] = createContextHook(() => {
         saveSmartEvent,
         deleteSmartEvent,
         smartEvents,
+        reminders,
+        addReminder,
+        deleteReminder,
         strings,
         isLoading: settingsQuery.isLoading || mitiCalendarQuery.isLoading || smartEventsQuery.isLoading,
         mitiCalendarData: mitiCalendarQuery.data,

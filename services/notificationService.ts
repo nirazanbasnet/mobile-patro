@@ -37,14 +37,38 @@ export const requestNotificationPermissions = async () => {
     }
 };
 
+/**
+ * Resolves the moment a reminder should fire.
+ *
+ * `adDate` is the Gregorian date of the event itself (month is 1-indexed, as
+ * returned by bsToAd). `leadDays` shifts the notification earlier — 1 means
+ * "the day before" — and `time` is "HH:mm" on that shifted day.
+ *
+ * Returns null when the resulting moment is already in the past, which is the
+ * caller's signal that the reminder cannot be scheduled.
+ */
+export const resolveReminderFireDate = (
+    adDate: { year: number; month: number; day: number },
+    time: string,
+    leadDays: number,
+): Date | null => {
+    const [hours, minutes] = time.split(':').map(Number);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+
+    // Construct then shift, so month/year rollover is handled by Date itself
+    // (e.g. 1 day before Baisakh 1 lands on the previous Gregorian month).
+    const fireAt = new Date(adDate.year, adDate.month - 1, adDate.day, hours, minutes, 0, 0);
+    fireAt.setDate(fireAt.getDate() - leadDays);
+
+    return fireAt.getTime() > Date.now() ? fireAt : null;
+};
+
 export const scheduleEventReminder = async (title: string, body: string, date: Date) => {
     // Basic safety check: don't schedule for the past
     if (date.getTime() <= Date.now()) {
         return null;
     }
 
-    // In a real app, you might want to schedule it e.g. 1 hour before
-    // For now, we schedule at the exact time parsed
     try {
         const identifier = await Notifications.scheduleNotificationAsync({
             content: {

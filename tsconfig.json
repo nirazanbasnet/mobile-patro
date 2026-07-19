@@ -18,6 +18,7 @@
   "exclude": [
     "Miti-2",
     "node_modules",
+    "supabase",
     "**/*.test.ts",
     "**/*.test.tsx"
   ]

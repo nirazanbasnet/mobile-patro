@@ -50,6 +50,62 @@ interface Translations {
 	confirmAndAdd: string;
 	whatsHappening: string;
 	typingVoiceHint: string;
+	// Reminders
+	reminders: string;
+	addReminder: string;
+	reminderQuestion: string;
+	reminderPlaceholder: string;
+	notifyMe: string;
+	oneDayBefore: string;
+	onTheDay: string;
+	reminderTime: string;
+	noReminders: string;
+	reminderEmpty: string;
+	reminderPastTime: string;
+	reminderSet: string;
+	timeMorning: string;
+	timeNoon: string;
+	timeEvening: string;
+	delete: string;
+	// Shared feedback
+	error: string;
+	success: string;
+	// Not found screen
+	notFoundTitle: string;
+	notFoundBody: string;
+	goHome: string;
+	// Tab bar / screen headers
+	festivals: string;
+	dateConverter: string;
+	// Date detail sheet
+	dateDetails: string;
+	events: string;
+	holiday: string;
+	panchanga: string;
+	nakshatra: string;
+	yog: string;
+	karan: string;
+	// Festivals screen
+	monthEvents: string;
+	upcomingHolidays: string;
+	noEventsThisMonth: string;
+	publicHoliday: string;
+	daysLeft: string;
+	// Home
+	goToToday: string;
+	// Ritual guide
+	aiRitualGuide: string;
+	ritualGuideFailed: string;
+	// Smart add
+	voiceAssistant: string;
+	voiceAssistantHint: string;
+	// Converter picker
+	year: string;
+	month: string;
+	day: string;
+	select: string;
+	bsAbbr: string;
+	adAbbr: string;
 }
 
 
@@ -103,6 +159,52 @@ const np: Translations = {
 	confirmAndAdd: "निश्चित गरी थप्नुहोस्",
 	whatsHappening: "के हुँदैछ?",
 	typingVoiceHint: "टाइप गर्नुहोस् वा आवाज प्रयोग गर्नुहोस्",
+	reminders: "रिमाइन्डर",
+	addReminder: "रिमाइन्डर थप्नुहोस्",
+	reminderQuestion: "केको बारेमा सम्झाउनु पर्ने हो?",
+	reminderPlaceholder: "उदाहरण: पूजाको लागि फूल किन्ने",
+	notifyMe: "कहिले सम्झाउने?",
+	oneDayBefore: "एक दिन अगाडि",
+	onTheDay: "सोही दिन",
+	reminderTime: "समय",
+	noReminders: "यस दिनको लागि कुनै रिमाइन्डर छैन",
+	reminderEmpty: "के सम्झाउने हो लेख्नुहोस्",
+	reminderPastTime: "त्यो समय गइसक्यो",
+	reminderSet: "रिमाइन्डर सेट भयो",
+	timeMorning: "बिहान",
+	timeNoon: "मध्यान्ह",
+	timeEvening: "बेलुका",
+	delete: "हटाउनुहोस्",
+	error: "त्रुटि",
+	success: "सफल",
+	notFoundTitle: "पृष्ठ भेटिएन",
+	notFoundBody: "यो पृष्ठ अवस्थित छैन।",
+	goHome: "गृहपृष्ठमा जानुहोस्",
+	festivals: "चाडपर्व",
+	dateConverter: "मिति रूपान्तरण",
+	dateDetails: "मिति विवरण",
+	events: "कार्यक्रमहरू",
+	holiday: "बिदा",
+	panchanga: "पञ्चाङ्ग",
+	nakshatra: "नक्षत्र",
+	yog: "योग",
+	karan: "करण",
+	monthEvents: "मासिक कार्यक्रम",
+	upcomingHolidays: "आगामी बिदा",
+	noEventsThisMonth: "यस महिनामा कुनै कार्यक्रमहरू छैनन्।",
+	publicHoliday: "सार्वजनिक बिदा",
+	daysLeft: "दिन बाँकी",
+	goToToday: "आजमा जानुहोस्",
+	aiRitualGuide: "एआई संस्कार विधि",
+	ritualGuideFailed: "विधि तयार गर्न सकिएन",
+	voiceAssistant: "आवाज सहायक",
+	voiceAssistantHint: "बोल्नको लागि किबोर्डको माइक आइकन थिच्नुहोस्।",
+	year: "वर्ष",
+	month: "महिना",
+	day: "दिन",
+	select: "छान्नुहोस्",
+	bsAbbr: "वि.सं.",
+	adAbbr: "ई.सं.",
 };
 
 const en: Translations = {
@@ -155,6 +257,52 @@ const en: Translations = {
 	confirmAndAdd: "Confirm & Add",
 	whatsHappening: "What's happening?",
 	typingVoiceHint: "Try typing or use voice dictation",
+	reminders: "Reminders",
+	addReminder: "Add reminder",
+	reminderQuestion: "What should we remind you about?",
+	reminderPlaceholder: "e.g. Buy flowers for the puja",
+	notifyMe: "Notify me",
+	oneDayBefore: "1 day before",
+	onTheDay: "On the day",
+	reminderTime: "Time",
+	noReminders: "No reminders for this day",
+	reminderEmpty: "Enter what to remind you about",
+	reminderPastTime: "That time has already passed",
+	reminderSet: "Reminder set",
+	timeMorning: "Morning",
+	timeNoon: "Midday",
+	timeEvening: "Evening",
+	delete: "Delete",
+	error: "Error",
+	success: "Success",
+	notFoundTitle: "Page not found",
+	notFoundBody: "This page doesn't exist.",
+	goHome: "Go to home",
+	festivals: "Festivals",
+	dateConverter: "Date Converter",
+	dateDetails: "Date Details",
+	events: "Events",
+	holiday: "Holiday",
+	panchanga: "Panchanga",
+	nakshatra: "Nakshatra",
+	yog: "Yog",
+	karan: "Karan",
+	monthEvents: "Month Events",
+	upcomingHolidays: "Upcoming Holidays",
+	noEventsThisMonth: "No events for this month",
+	publicHoliday: "Public Holiday",
+	daysLeft: "days left",
+	goToToday: "Go to Today",
+	aiRitualGuide: "AI Ritual Guide",
+	ritualGuideFailed: "Failed to generate guide",
+	voiceAssistant: "Voice Assistant",
+	voiceAssistantHint: "Tap the mic icon on your keyboard to speak.",
+	year: "Year",
+	month: "Month",
+	day: "Day",
+	select: "Select",
+	bsAbbr: "BS",
+	adAbbr: "AD",
 };
 
 const translations: Record<Language, Translations> = { np, en };

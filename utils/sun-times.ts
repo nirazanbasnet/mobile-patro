@@ -44,12 +44,16 @@ export function getSunTimes(
 	const sunriseDecimal = solarNoon - haDeg / 15;
 	const sunsetDecimal = solarNoon + haDeg / 15;
 
+	// Emit 24h "HH:MM" and leave localisation to formatClockTime, so this matches
+	// the shape the Miti API returns and both sources format identically.
 	const formatTime = (decimal: number): string => {
-		const hours = Math.floor(decimal);
-		const minutes = Math.round((decimal - hours) * 60);
-		const period = hours >= 12 ? "PM" : "AM";
-		const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-		return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+		let hours = Math.floor(decimal);
+		let minutes = Math.round((decimal - hours) * 60);
+		if (minutes === 60) {
+			hours += 1;
+			minutes = 0;
+		}
+		return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 	};
 
 	return {

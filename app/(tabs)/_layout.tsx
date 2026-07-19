@@ -1,8 +1,11 @@
 import { Tabs } from 'expo-router';
 import { CalendarDays, PartyPopper, ArrowRightLeft, Settings } from 'lucide-react-native';
 import React from 'react';
+import { useApp } from '@/contexts/AppContext';
 
 export default function TabLayout() {
+    const { strings } = useApp();
+
     return (
         <Tabs
             screenOptions={{
@@ -19,28 +22,28 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="(home)"
                 options={{
-                    title: 'MobilePatro',
+                    title: strings.nepaliCalendar,
                     tabBarIcon: ({ color, size }) => <CalendarDays size={size} color={color} />,
                 }}
             />
             <Tabs.Screen
                 name="festivals"
                 options={{
-                    title: 'Festivals',
+                    title: strings.festivals,
                     tabBarIcon: ({ color, size }) => <PartyPopper size={size} color={color} />,
                 }}
             />
             <Tabs.Screen
                 name="converter"
                 options={{
-                    title: 'Date Converter',
+                    title: strings.dateConverter,
                     tabBarIcon: ({ color, size }) => <ArrowRightLeft size={size} color={color} />,
                 }}
             />
             <Tabs.Screen
                 name="settings"
                 options={{
-                    title: 'Settings',
+                    title: strings.settings,
                     tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
                 }}
             />

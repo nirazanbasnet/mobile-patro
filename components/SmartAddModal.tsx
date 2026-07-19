@@ -38,7 +38,7 @@ export default function SmartAddModal({ visible, onClose }: SmartAddModalProps) 
             const result = await parseSmartEvent(input, currentBsDate);
             setPreview(result);
         } catch (error: any) {
-            Alert.alert("Error", error.message || "Failed to parse event");
+            Alert.alert(strings.error, error?.message || strings.ritualGuideFailed);
         } finally {
             setLoading(false);
         }
@@ -48,21 +48,19 @@ export default function SmartAddModal({ visible, onClose }: SmartAddModalProps) 
         if (!preview) return;
 
         try {
-            // 1. Save structured SmartEvent to AppContext
-            saveSmartEvent(preview);
-            
             // Also save a plain note for compatibility
             saveNote(preview.title + (preview.remindAtTime ? ` (${preview.remindAtTime})` : ''));
 
-            // 2. Schedule notification if enabled
+            // Schedule first, so the event is stored with its notification id in one write.
+            let notificationId: string | null = null;
             if (preview.reminderEnabled) {
                 const hasPermission = await requestNotificationPermissions();
                 if (hasPermission) {
                     // Convert BS date to AD for notification trigger
                     const ad = bsToAd(preview.date.year, preview.date.month, preview.date.day);
-                    
+
                     let scheduleDate = new Date(ad.year, ad.month - 1, ad.day);
-                    
+
                     if (preview.remindAtTime) {
                         const [hours, mins] = preview.remindAtTime.split(':').map(Number);
                         scheduleDate.setHours(hours, mins, 0, 0);
@@ -71,21 +69,21 @@ export default function SmartAddModal({ visible, onClose }: SmartAddModalProps) 
                         scheduleDate.setHours(9, 0, 0, 0);
                     }
 
-                    await scheduleEventReminder(
+                    notificationId = await scheduleEventReminder(
                         preview.title,
-                        `Reminder: ${preview.title}`,
+                        `${strings.reminderSet}: ${preview.title}`,
                         scheduleDate
                     );
                 }
             }
 
-            Alert.alert(
-                strings.language === 'en' ? "Success" : "सफल", 
-                strings.language === 'en' ? "Event added successfully!" : "घटना थपियो!"
-            );
+            // Persist the notification id so deleting the event can cancel it.
+            saveSmartEvent({ ...preview, notificationId });
+
+            Alert.alert(strings.success, strings.smartAdd);
             handleClose();
         } catch (error: any) {
-            Alert.alert("Error", "Failed to save event");
+            Alert.alert(strings.error, error?.message || strings.error);
         }
     };
 
@@ -139,7 +137,7 @@ export default function SmartAddModal({ visible, onClose }: SmartAddModalProps) 
                                     autoFocus
                                 />
                                 <View style={styles.actionRow}>
-                                    <TouchableOpacity style={styles.micBtn} onPress={() => Alert.alert("Voice Assistant", "Using your system keyboard's mic is the easiest way to speak! Try tapping the mic icon on your keyboard.")}>
+                                    <TouchableOpacity style={styles.micBtn} onPress={() => Alert.alert(strings.voiceAssistant, strings.voiceAssistantHint)}>
                                         <Mic size={22} color="#FF9800" />
                                     </TouchableOpacity>
                                     <TouchableOpacity 
@@ -189,7 +187,7 @@ export default function SmartAddModal({ visible, onClose }: SmartAddModalProps) 
                                 <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
                                     <Save size={20} color="#FFF" />
                                     <Text style={styles.saveBtnText}>
-                                        {strings.language === 'en' ? 'Confirm & Add' : 'निश्चित गरि थप्नुहोस्'}
+                                        {strings.confirmAndAdd}
                                     </Text>
                                 </TouchableOpacity>
                             </View>

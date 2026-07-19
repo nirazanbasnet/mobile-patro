@@ -5,6 +5,7 @@ import { useApp } from '@/contexts/AppContext';
 import { toNepaliDigits } from '@/utils/nepali';
 import { BS_MONTH_NAMES_EN, BS_MONTH_NAMES_NP } from '@/data/bs-data';
 import RitualGuideModal from './RitualGuideModal';
+import ReminderSection from './ReminderSection';
 
 
 
@@ -41,7 +42,7 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                 <View style={styles.content}>
                     <View style={styles.header}>
                         <Text style={styles.headerTitle}>
-                            {isEn ? 'Date Details' : 'मिति विवरण'}
+                            {strings.dateDetails}
                         </Text>
                         <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
                             <X size={24} color="#1A1A2E" />
@@ -65,6 +66,10 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                             </Text>
                         </View>
 
+                        {/* Reminders — the actionable part of a day, so it sits
+                            above the reference info (tithi, sun times, panchanga). */}
+                        <ReminderSection />
+
                         {/* Tithi */}
                         <View style={styles.infoCard}>
                             <View style={styles.infoRow}>
@@ -72,7 +77,7 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                                 <View style={styles.infoContent}>
                                     <View style={styles.tithiHeader}>
                                         <View>
-                                            <Text style={styles.infoLabel}>{isEn ? 'Tithi' : 'तिथि'}</Text>
+                                            <Text style={styles.infoLabel}>{strings.tithi}</Text>
                                             <Text style={styles.infoValue}>{tithiName}</Text>
                                         </View>
                                         <TouchableOpacity 
@@ -98,13 +103,13 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                                 <View style={styles.timesRow}>
                                     <View style={styles.timeItem}>
                                         <Sun size={20} color="#F59E0B" />
-                                        <Text style={styles.timeLabel}>{isEn ? 'Sunrise' : 'सूर्योदय'}</Text>
+                                        <Text style={styles.timeLabel}>{strings.sunrise}</Text>
                                         <Text style={styles.timeValue}>{dayInfo.sunTimes.sunrise || '--:--'}</Text>
                                     </View>
                                     <View style={styles.timeDivider} />
                                     <View style={styles.timeItem}>
                                         <Moon size={20} color="#6366F1" />
-                                        <Text style={styles.timeLabel}>{isEn ? 'Sunset' : 'सूर्यास्त'}</Text>
+                                        <Text style={styles.timeLabel}>{strings.sunset}</Text>
                                         <Text style={styles.timeValue}>{dayInfo.sunTimes.sunset || '--:--'}</Text>
                                     </View>
                                 </View>
@@ -150,7 +155,7 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                                             {smartEvent.reminderEnabled && (
                                                 <View style={styles.smartDetailItem}>
                                                     <Bell size={12} color="#4CAF50" />
-                                                    <Text style={[styles.smartDetailText, { color: '#4CAF50' }]}>Reminder Set</Text>
+                                                    <Text style={[styles.smartDetailText, { color: '#4CAF50' }]}>{strings.reminderSet}</Text>
                                                 </View>
                                             )}
                                         </View>
@@ -176,7 +181,7 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                                 <View style={styles.infoRow}>
                                     <Calendar size={20} color="#10B981" />
                                     <View style={styles.infoContent}>
-                                        <Text style={styles.infoLabel}>{isEn ? 'Events' : 'कार्यक्रमहरू'}</Text>
+                                        <Text style={styles.infoLabel}>{strings.events}</Text>
                                         {dayInfo.mitiEvents.map((event, index) => (
                                             <View key={index} style={styles.eventItem}>
                                                 <Text style={styles.eventTitle}>
@@ -184,7 +189,7 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                                                 </Text>
                                                 {event.isHoliday && (
                                                     <View style={styles.holidayBadge}>
-                                                        <Text style={styles.holidayText}>{isEn ? 'Holiday' : 'बिदा'}</Text>
+                                                        <Text style={styles.holidayText}>{strings.holiday}</Text>
                                                     </View>
                                                 )}
                                             </View>
@@ -197,28 +202,28 @@ export default function DateDetailModal({ visible, onClose }: DateDetailModalPro
                         {/* Panchanga Details */}
                         {dayInfo.mitiData?.panchangaDetails && (
                             <View style={styles.infoCard}>
-                                <Text style={styles.cardTitle}>{isEn ? 'Panchanga' : 'पञ्चाङ्ग'}</Text>
+                                <Text style={styles.cardTitle}>{strings.panchanga}</Text>
                                 {dayInfo.mitiData.panchangaDetails.nakshatra && (
                                     <View style={styles.panchangaRow}>
-                                        <Text style={styles.panchangaLabel}>{isEn ? 'Nakshatra' : 'नक्षत्र'}</Text>
+                                        <Text style={styles.panchangaLabel}>{strings.nakshatra}</Text>
                                         <Text style={styles.panchangaValue}>{dayInfo.mitiData.panchangaDetails.nakshatra.np}</Text>
                                     </View>
                                 )}
                                 {dayInfo.mitiData.panchangaDetails.yog && (
                                     <View style={styles.panchangaRow}>
-                                        <Text style={styles.panchangaLabel}>{isEn ? 'Yog' : 'योग'}</Text>
+                                        <Text style={styles.panchangaLabel}>{strings.yog}</Text>
                                         <Text style={styles.panchangaValue}>{dayInfo.mitiData.panchangaDetails.yog.np}</Text>
                                     </View>
                                 )}
                                 {dayInfo.mitiData.panchangaDetails.karans && (
                                     <View style={styles.panchangaRow}>
-                                        <Text style={styles.panchangaLabel}>{isEn ? 'Karan' : 'करण'}</Text>
+                                        <Text style={styles.panchangaLabel}>{strings.karan}</Text>
                                         <Text style={styles.panchangaValue}>{dayInfo.mitiData.panchangaDetails.karans.first.np}</Text>
                                     </View>
                                 )}
                                 {dayInfo.mitiData.panchangaDetails.pakshya && (
                                     <View style={styles.panchangaRow}>
-                                        <Text style={styles.panchangaLabel}>{isEn ? 'Pakshya' : 'पक्ष'}</Text>
+                                        <Text style={styles.panchangaLabel}>{strings.paksha}</Text>
                                         <Text style={styles.panchangaValue}>{isEn ? dayInfo.mitiData.panchangaDetails.pakshya.en : dayInfo.mitiData.panchangaDetails.pakshya.np}</Text>
                                     </View>
                                 )}

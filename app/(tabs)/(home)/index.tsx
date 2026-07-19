@@ -5,11 +5,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { ChevronLeft, ChevronRight, Settings, RotateCcw, Sparkles } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Settings, RotateCcw } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import AnimatedDate from '@/components/AnimatedDate';
-import DailyInfo from '@/components/DailyInfo';
-import MonthModal from '@/components/MonthModal';
 import NoteModal from '@/components/NoteModal';
 import ParticleEffect from '@/components/ParticleEffect';
 import DateDetailModal from '@/components/DateDetailModal';
@@ -38,7 +36,6 @@ export default function HomeScreen() {
         customHolidays,
     } = useApp();
     const insets = useSafeAreaInsets();
-    const [monthModalVisible, setMonthModalVisible] = useState(false);
     const [noteModalVisible, setNoteModalVisible] = useState(false);
     const [dateDetailVisible, setDateDetailVisible] = useState(false);
     const [customHolidayModalVisible, setCustomHolidayModalVisible] = useState(false);
@@ -205,11 +202,10 @@ export default function HomeScreen() {
 
             {/* Header */}
             <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-                <Text style={[styles.headerTitle, { color: '#E91E63' }]}>MobilePatro</Text>
+                <Text style={[styles.headerTitle, { color: '#E91E63' }]}>{strings.nepaliCalendar}</Text>
                 <View style={styles.headerRight}>
-                    <TouchableOpacity onPress={() => setSmartAddVisible(true)} style={[styles.themeToggle, { borderColor: '#FFE4EC', marginRight: 12 }]}>
-                        <Sparkles size={20} color="#FF9800" />
-                    </TouchableOpacity>
+                    {/* Smart Add entry point is hidden for now. The modal below is still
+                        mounted, so restoring it is a matter of re-adding this button. */}
                     <TouchableOpacity onPress={goToSettings} style={[styles.themeToggle, { borderColor: '#FFE4EC' }]}>
                         <Settings size={20} color="#E91E63" />
                     </TouchableOpacity>
@@ -302,13 +298,13 @@ export default function HomeScreen() {
                     {/* Today label OR Go-to-Today button */}
                     {isToday ? (
                         <Text style={styles.todayLabel}>
-                            {isEn ? 'Today' : 'आज'}
+                            {strings.today}
                         </Text>
                     ) : (
                         <TouchableOpacity onPress={goToToday} style={styles.goTodayBtn} activeOpacity={0.75}>
                             <RotateCcw size={14} color="#E91E63" />
                             <Text style={styles.goTodayText}>
-                                {isEn ? 'Go to Today' : 'आजमा जानुहोस्'}
+                                {strings.goToToday}
                             </Text>
                         </TouchableOpacity>
                     )}
@@ -327,7 +323,6 @@ export default function HomeScreen() {
                 </View>
             </ScrollView>
 
-            <MonthModal visible={monthModalVisible} onClose={() => setMonthModalVisible(false)} />
             <NoteModal visible={noteModalVisible} onClose={() => setNoteModalVisible(false)} />
             <DateDetailModal visible={dateDetailVisible} onClose={() => setDateDetailVisible(false)} />
             <CustomHolidayModal

@@ -1,14 +1,17 @@
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import { useApp } from '@/contexts/AppContext';
 
 export default function NotFoundScreen() {
+    const { strings } = useApp();
+
     return (
         <>
-            <Stack.Screen options={{ title: 'पृष्ठ भेटिएन' }} />
+            <Stack.Screen options={{ title: strings.notFoundTitle }} />
             <View style={styles.container}>
-                <Text style={styles.title}>यो पृष्ठ अवस्थित छैन।</Text>
+                <Text style={styles.title}>{strings.notFoundBody}</Text>
                 <Link href="/" style={styles.link}>
-                    <Text style={styles.linkText}>गृहपृष्ठमा जानुहोस्</Text>
+                    <Text style={styles.linkText}>{strings.goHome}</Text>
                 </Link>
             </View>
         </>

@@ -5,8 +5,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Settings, ArrowLeftRight, ChevronDown, X, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { useApp } from '@/contexts/AppContext';
 import { bsToAd, adToBs } from '@/utils/bs-converter';
-import { BS_MONTH_NAMES_EN, BS_MONTH_NAMES_NP, getDaysInBsMonth, MIN_BS_YEAR, MAX_BS_YEAR } from '@/data/bs-data';
-import { toNepaliDigits, formatAdDate } from '@/utils/nepali';
+import { BS_MONTH_NAMES_EN, BS_MONTH_NAMES_NP, BS_DAY_NAMES_EN, BS_DAY_NAMES_NP, getDaysInBsMonth, MIN_BS_YEAR, MAX_BS_YEAR } from '@/data/bs-data';
+import { toNepaliDigits, formatAdDate, getAdMonthName } from '@/utils/nepali';
 import { router } from 'expo-router';
 
 const MIN_AD_YEAR = 1913;
@@ -14,7 +14,7 @@ const MAX_AD_YEAR = 2034;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ConverterScreen() {
-    const { settings, currentBsDate } = useApp();
+    const { settings, currentBsDate, strings } = useApp();
     const insets = useSafeAreaInsets();
     const isEn = settings.language === 'en';
 
@@ -86,19 +86,19 @@ export default function ConverterScreen() {
     };
 
     const getPickerTitle = () => {
-        const target = pickerTarget === 'bs' ? (isEn ? 'BS' : 'वि.सं.') : (isEn ? 'AD' : 'ई.सं.');
-        const mode = pickerMode === 'year' ? (isEn ? 'Year' : 'वर्ष') :
-            pickerMode === 'month' ? (isEn ? 'Month' : 'महिना') : (isEn ? 'Day' : 'दिन');
-        return `${target} ${mode} ${isEn ? 'Select' : 'छान्नुहोस्'}`;
+        const target = pickerTarget === 'bs' ? strings.bsAbbr : strings.adAbbr;
+        const mode = pickerMode === 'year' ? strings.year :
+            pickerMode === 'month' ? strings.month : strings.day;
+        return `${target} ${mode} ${strings.select}`;
     };
 
     // Computations
     const convertedDate = useMemo(() => {
         if (isBsToAd) {
             const ad = bsToAd(bsYear, bsMonth, bsDay);
-            const dateStr = formatAdDate(ad.year, ad.month, ad.day);
+            const dateStr = formatAdDate(ad.year, ad.month, ad.day, settings.language);
             const adDateObj = new Date(ad.year, ad.month - 1, ad.day);
-            const dayName = adDateObj.toLocaleDateString('en-US', { weekday: 'long' });
+            const dayName = (isEn ? BS_DAY_NAMES_EN : BS_DAY_NAMES_NP)[adDateObj.getDay()];
             return {
                 mainLine: dateStr,
                 subLine: `${isEn ? bsYear : toNepaliDigits(bsYear)} ${isEn ? BS_MONTH_NAMES_EN[bsMonth - 1] : BS_MONTH_NAMES_NP[bsMonth - 1]} ${isEn ? bsDay : toNepaliDigits(bsDay)}, ${dayName}`
@@ -106,10 +106,10 @@ export default function ConverterScreen() {
         } else {
             const bs = adToBs(adYear, adMonth, adDay);
             const adDateObj = new Date(adYear, adMonth - 1, adDay);
-            const dayName = adDateObj.toLocaleDateString('en-US', { weekday: 'long' });
+            const dayName = (isEn ? BS_DAY_NAMES_EN : BS_DAY_NAMES_NP)[adDateObj.getDay()];
             return {
                 mainLine: `${isEn ? bs.year : toNepaliDigits(bs.year)} ${isEn ? BS_MONTH_NAMES_EN[bs.month - 1] : BS_MONTH_NAMES_NP[bs.month - 1]} ${isEn ? bs.day : toNepaliDigits(bs.day)}`,
-                subLine: `${formatAdDate(adYear, adMonth, adDay)}, ${dayName}`
+                subLine: `${formatAdDate(adYear, adMonth, adDay, settings.language)}, ${dayName}`
             };
         }
     }, [isBsToAd, bsYear, bsMonth, bsDay, adYear, adMonth, adDay, isEn]);
@@ -131,7 +131,7 @@ export default function ConverterScreen() {
 
             {/* Header */}
             <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-                <Text style={styles.headerTitle}>Date converter</Text>
+                <Text style={styles.headerTitle}>{strings.dateConverter}</Text>
                 <TouchableOpacity onPress={goToSettings} style={styles.themeToggle}>
                     <Settings size={20} color="#E91E63" />
                 </TouchableOpacity>
@@ -166,9 +166,9 @@ export default function ConverterScreen() {
                 <View style={styles.pickersCard}>
 
                     <View style={styles.pickerHeadersRow}>
-                        <Text style={styles.pickerHeaderLabel}>{isEn ? 'Year' : 'वर्ष'}</Text>
-                        <Text style={styles.pickerHeaderLabel}>{isEn ? 'Month' : 'महिना'}</Text>
-                        <Text style={styles.pickerHeaderLabel}>{isEn ? 'Day' : 'दिन'}</Text>
+                        <Text style={styles.pickerHeaderLabel}>{strings.year}</Text>
+                        <Text style={styles.pickerHeaderLabel}>{strings.month}</Text>
+                        <Text style={styles.pickerHeaderLabel}>{strings.day}</Text>
                     </View>
 
                     <View style={styles.pickersRow}>
@@ -192,7 +192,7 @@ export default function ConverterScreen() {
                             <Text style={styles.pickerButtonText}>
                                 {isBsToAd
                                     ? (isEn ? BS_MONTH_NAMES_EN[bsMonth - 1] : BS_MONTH_NAMES_NP[bsMonth - 1])
-                                    : new Date(2000, adMonth - 1, 1).toLocaleString('en-US', { month: 'long' })
+                                    : getAdMonthName(adMonth, settings.language)
                                 }
                             </Text>
                             <ChevronDown size={16} color="#9CA3AF" />
@@ -238,9 +238,11 @@ export default function ConverterScreen() {
                                         if (pickerTarget === 'bs') {
                                             label = isEn ? BS_MONTH_NAMES_EN[item - 1] : BS_MONTH_NAMES_NP[item - 1];
                                         } else {
-                                            label = new Date(2000, item - 1, 1).toLocaleString('en-US', { month: 'long' });
+                                            label = getAdMonthName(item, settings.language);
                                         }
-                                    } else if (pickerMode !== 'year' && !isEn) {
+                                    } else if (!isEn && !(pickerMode === 'year' && pickerTarget === 'ad')) {
+                                        // BS years render as Nepali numerals to match the closed
+                                        // picker button; AD years stay in Latin digits.
                                         label = toNepaliDigits(item);
                                     }
                                     return (

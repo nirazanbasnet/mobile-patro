@@ -29,7 +29,7 @@ interface FestivalDisplay {
 
 
 export default function FestivalsScreen() {
-    const { settings, currentBsDate } = useApp();
+    const { settings, currentBsDate, strings } = useApp();
     const insets = useSafeAreaInsets();
     const isEn = settings.language === 'en';
 
@@ -210,7 +210,7 @@ export default function FestivalsScreen() {
 
             {/* Header */}
             <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-                <Text style={styles.headerTitle}>Festivals</Text>
+                <Text style={styles.headerTitle}>{strings.festivals}</Text>
                 <TouchableOpacity onPress={goToSettings} style={styles.themeToggle}>
                     <Settings size={20} color="#E91E63" />
                 </TouchableOpacity>
@@ -224,7 +224,7 @@ export default function FestivalsScreen() {
                 >
                     <Calendar size={16} color={activeTab === 0 ? '#E91E63' : '#9CA3AF'} />
                     <Text style={[styles.tabText, activeTab === 0 && styles.activeTabText]}>
-                        {isEn ? 'Month Events' : 'मासिक कार्यक्रम'}
+                        {strings.monthEvents}
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -233,7 +233,7 @@ export default function FestivalsScreen() {
                 >
                     <PartyPopper size={16} color={activeTab === 1 ? '#E91E63' : '#9CA3AF'} />
                     <Text style={[styles.tabText, activeTab === 1 && styles.activeTabText]}>
-                        {isEn ? 'Upcoming Holidays' : 'आगामी बिदा'}
+                        {strings.upcomingHolidays}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -277,7 +277,7 @@ export default function FestivalsScreen() {
                 {displayFestivals.length === 0 ? (
                     <View style={styles.emptyState}>
                         <Text style={styles.emptyText}>
-                            {isEn ? 'No events for this month' : 'यस महिनामा कुनै कार्यक्रमहरू छैनन्।'}
+                            {strings.noEventsThisMonth}
                         </Text>
                     </View>
                 ) : (
@@ -301,7 +301,7 @@ export default function FestivalsScreen() {
                                     </Text>
                                     {f.daysRemaining >= 0 && viewMonth === currentBsDate.month && (
                                         <Text style={styles.daysLeft}>
-                                            {isEn ? `${f.daysRemaining} days left` : `${toNepaliDigits(f.daysRemaining)} दिन बाँकी`}
+                                            {`${isEn ? f.daysRemaining : toNepaliDigits(f.daysRemaining)} ${strings.daysLeft}`}
                                         </Text>
                                     )}
                                 </View>
@@ -317,7 +317,7 @@ export default function FestivalsScreen() {
                                     {f.isHoliday && (
                                         <View style={styles.holidayTagBox}>
                                             <Text style={styles.holidayTag}>
-                                                {isEn ? 'Public Holiday' : 'सार्वजनिक बिदा'}
+                                                {strings.publicHoliday}
                                             </Text>
                                         </View>
                                     )}
